@@ -1,0 +1,63 @@
+html, body {
+    margin: 0px;
+    padding: 0px;
+    font-family: sans-serif;
+    font-weight: lighter;
+}
+.noselect {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.draggable {
+    position: fixed;
+}
+.blue {
+    background-color: blue;
+    color: white;
+}
+.red {
+    background-color: red;
+    color: white;
+}
+.green {
+    background-color: green;
+    color: white;
+}
+.yellow {
+    background-color: yellow;
+}
+.white {
+    background-color: white;
+}
+.card {
+    border: 1px solid black;
+    border-radius: 5px;
+    height: 48px;
+    width: 36px;
+    padding: 2px;
+}
+.facedown {
+    color: transparent;
+    background-color: gray;
+}
+.token {
+    height: 25px;
+    width: 25px;
+    border-radius: 25px;
+    border: 1px solid black;
+    color: transparent;
+}
+.stash {
+    position: relative;
+    display: block;
+    border: 3px solid black;
+    margin: 1px;
+    height: 70px;
+    width: 200px;
+    z-index: -1;
+}
+#scored {
+    height: 200px;
+}
