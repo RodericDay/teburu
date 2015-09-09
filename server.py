@@ -4,30 +4,17 @@ from aiohttp.web import Application, Response, MsgType, WebSocketResponse
 
 DIR = os.path.dirname(__file__)
 WS_FILE = os.path.join(DIR, 'client.html')
+SPEC_FILE = os.path.join(DIR, 'static', 'games', 'hanabi.json')
 
 
-# define game tokens
-suits = ["red", "green", "blue", "yellow", "white"]
-values = [1, 1, 1, 2, 2, 3, 3, 4, 4, 5]
-
-DEFAULT = []
-i = 0
-for suit in suits:
-    for value in values:
-        i += 1
-        label = "card{}".format(i)
-        DEFAULT += [[label, 250, 10, "draggable card "+suit+" facedown", str(value)]]
-random.shuffle(DEFAULT)
-DEFAULT+= [["b"+n, 260, 100, "draggable blue token", ""] for n in "12345678"]
-DEFAULT+= [["r"+n, 260, 200, "draggable red token", ""] for n in "123"]
-DEFAULT+= [["stash"+str(n), 0, 0, "stash", "Player "+str(n+1)] for n in range(5)]
-DEFAULT+= [["scored", 0, 0, "stash", "Score Area"] for n in range(1, 6)]
-STATE = DEFAULT[:]
+def restart_game():
+    with open(SPEC_FILE) as fp:
+        global GAME
+        GAME = json.load(fp)
 
 
 @asyncio.coroutine
 def wshandler(request):
-    global STATE
 
     resp = WebSocketResponse()
     ok, protocol = resp.can_start(request)
@@ -36,25 +23,35 @@ def wshandler(request):
             return Response(body=fp.read(), content_type='text/html')
 
     sockets = request.app['sockets']
+    if len(sockets) == 0: restart_game()
     sockets.append(resp)
 
     resp.start(request)
-    resp.send_str( str(sockets.index(resp)) + json.dumps(STATE) )
+
+    for i, ws in enumerate(sockets, 1):
+        n = len(sockets)
+        ws.send_str(json.dumps({"info": [i, n]}))
+
+    resp.send_str(json.dumps(GAME))
 
     while True:
         msg = yield from resp.receive()
 
         if msg.tp == MsgType.text:
-            STATE += json.loads(msg.data)
-            for i, ws in enumerate(sockets):
-                ws.send_str(str(i)+msg.data)
+
+            move = json.loads(msg.data)+[len(GAME["moves"])]
+            GAME["moves"].append(move)
+            for ws in sockets:
+                ws.send_str(json.dumps({"moves": [move]}))
+
         else:
             break
 
     sockets.remove(resp)
 
-    if len(sockets) == 0:
-        STATE = DEFAULT[:]
+    for i, ws in enumerate(sockets):
+        n = len(sockets)
+        ws.send_str(json.dumps({"info": [i, n]}))
 
     return resp
 

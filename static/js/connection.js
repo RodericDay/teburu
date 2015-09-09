@@ -1,43 +1,87 @@
-disable = function() { return false }
+window.oncontextmenu = disable = function() {
 
-window.oncontextmenu = disable;
+    return false
+
+}
 
 window.onload = connect = function() {
 
     var loc = window.location.toString().replace("http", "ws");
 
     ws = new WebSocket(loc);
+
     ws.onmessage = update;
+    ws.onclose = function() { info.innerHTML = "You were disconnected" }
 
 }
 
 update = function(message) {
 
-    myArea = "stash" + message.data[0]; // super bad
-    var data = JSON.parse(message.data.substring(1));
+    var data = JSON.parse(message.data);
 
-    data.forEach(function(entry) {
+    if (data.info) {
 
-        var el = document.getElementById(entry[0]) || createNew(entry[0], entry[3], entry[4]);
+        info.innerHTML = "You are player "+data.info[0]+" out of "+data.info[1];
+        myArea = "z"+(data.info[0]);
 
-        el.style.left = entry[1] + "px";
-        el.style.top = entry[2] + "px";
+    }
 
-        if (el.classList.contains("draggable") &&
-            el.classList.contains("card")) { transfer(el) };
-
-    });
+    (data.moves || []).forEach(function(entry) { move.apply(this, entry) } );
 
 }
 
-createNew = function(id, classes, label) {
+move = function(id, x, y, z, classes, label) {
 
-    var el = document.createElement("div");
-    el.className = classes;
-    el.classList.add("noselect");
+    var el = document.getElementById(id) || newPiece(id, classes, label);
+
+    el.style.left = x + "px";
+    el.style.top = y + "px";
+    el.style.zIndex = z;
+
+    transfer(el);
+
+}
+
+newPiece = function(id, classes, label) {
+
+    el = document.createElement("div");
+
     el.id = id;
+    el.className = classes + " noselect";
     el.innerHTML = label;
+
     document.body.appendChild(el);
+
     return el
+
+}
+
+transfer = function(el) {
+
+    if (!el.classList.contains("card")) { return }
+
+    var pieceRect = el.getBoundingClientRect(),
+        nodeList = document.getElementsByClassName("zone"),
+        nodeArray = [].slice.call(nodeList);
+
+    var known = nodeArray.some(function(zone) {
+
+        var zoneRect = zone.getBoundingClientRect(),
+            inside =    (zoneRect.left < pieceRect.left) &&
+                        (zoneRect.top < pieceRect.top) &&
+                        (zoneRect.right > pieceRect.right) &&
+                        (zoneRect.bottom > pieceRect.bottom)
+            blind = (zone.id == myArea);
+
+        if (inside & !blind) {
+
+            el.classList.remove("facedown");
+            return true
+
+        }
+
+    });
+
+    if (!known) { el.classList.add("facedown") }
 
 }

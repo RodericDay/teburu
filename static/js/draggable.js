@@ -6,7 +6,8 @@ window.onmousedown = select = function(ev) {
 
     if (isDraggable) {
 
-        selection = ev.target
+        selection = ev.target;
+        selection.style.zIndex += 1000;
         x_offset = ev.layerX;
         y_offset = ev.layerY;
 
@@ -31,7 +32,8 @@ window.onmouseup = release = function(ev) {
             x = selection.style.left.replace("px", ""),
             y = selection.style.top.replace("px", ""),
             data = [i, x, y],
-            json = JSON.stringify([data]);
+            json = JSON.stringify(data);
+
         ws.send(json);
 
     }

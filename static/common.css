@@ -49,8 +49,7 @@ html, body {
     border: 1px solid black;
     color: transparent;
 }
-.stash {
-    position: relative;
+.zone {
     display: block;
     border: 3px solid black;
     margin: 1px;
@@ -58,6 +57,6 @@ html, body {
     width: 200px;
     z-index: -1;
 }
-#scored {
-    height: 200px;
+#scorearea {
+    height: 120px;
 }
