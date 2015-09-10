@@ -57,6 +57,7 @@ html, body {
     width: 200px;
     z-index: -1;
 }
-#scorearea {
-    height: 120px;
+.selected {
+    margin: -5px;
+    box-shadow: 5px 5px 5px black;
 }

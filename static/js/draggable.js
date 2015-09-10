@@ -9,6 +9,7 @@ window.onmousedown = select = function(ev) {
 
         selection = ev.target;
         selection.style.zIndex += 1000;
+        selection.classList.add("selected");
         x_offset = ev.layerX;
         y_offset = ev.layerY;
 
@@ -36,6 +37,12 @@ window.onmouseup = release = function(ev) {
             json = JSON.stringify(data);
 
         ws.send(json);
+
+    }
+
+    if (selection) {
+
+        selection.classList.remove("selected");
 
     }
 
