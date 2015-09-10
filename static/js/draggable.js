@@ -33,7 +33,7 @@ window.onmouseup = release = function(ev) {
         var i = selection.id,
             x = selection.style.left.replace("px", ""),
             y = selection.style.top.replace("px", ""),
-            data = [i, x, y],
+            data = ["move", i, x, y],
             json = JSON.stringify(data);
 
         ws.send(json);

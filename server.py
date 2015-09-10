@@ -10,16 +10,16 @@ USERMAP = collections.OrderedDict()
 
 def restart_game():
     with open(SPEC_FILE) as fp:
-        global GAME
-        GAME = json.load(fp)
+        global ACTIONS
+        ACTIONS = json.load(fp)
         USERMAP.clear()
 
 def update_id_info(sockets):
     n = len(sockets)
     for i, (k, ws) in enumerate(USERMAP.items(), 1):
-        info = [i, n, k]
+        info = [("info", i, n, k)]
         try:
-            ws.send_str(json.dumps({"info":info}))
+            ws.send_str(json.dumps(info))
         except RuntimeError:
             pass
 
@@ -49,17 +49,17 @@ def wshandler(request):
 
     # communicate
     update_id_info(sockets)
-    resp.send_str(json.dumps(GAME))
+    resp.send_str(json.dumps(ACTIONS))
 
     while True:
         msg = yield from resp.receive()
 
         if msg.tp == MsgType.text:
 
-            move = json.loads(msg.data)+[len(GAME["moves"])]
-            GAME["moves"].append(move)
+            move = json.loads(msg.data)+[len(ACTIONS)]
+            ACTIONS.append(move)
             for ws in sockets:
-                ws.send_str(json.dumps({"moves": [move]}))
+                ws.send_str(json.dumps([move]))
 
         else:
             break

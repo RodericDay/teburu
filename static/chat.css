@@ -1,0 +1,21 @@
+#chatForm {
+    padding: 10px;
+    width: 200px;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
+#log {
+    overflow: auto;
+    height: 200px;
+    width: 100%;
+    border: 1px solid black;
+}
+#textInput {
+    width: 140px;
+    display: inline;
+}
+#submitButton {
+    width: 40px;
+    display: inline;
+}

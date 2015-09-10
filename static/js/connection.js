@@ -12,24 +12,23 @@ window.onload = connect = function() {
 
     ws.onmessage = update;
     ws.onopen = function() { ws.send(window.sessionStorage.getItem("keycode")) }
-    ws.onclose = function() { info.innerHTML = "You were disconnected" }
+    ws.onclose = function() { infoBar.innerHTML = "You were disconnected" }
+
+    createChat();
 
 }
 
 update = function(message) {
 
-    var data = JSON.parse(message.data);
+    var actions = JSON.parse(message.data);
 
-    if (data.info) {
+    actions.forEach(function(entry) {
 
-        var i = data.info[0], n = data.info[1], k = data.info[2];
-        info.innerHTML = "You are Player "+i+" ("+n+" online)";
-        myArea = "z"+(i);
-        if (k) { window.sessionStorage.setItem("keycode", k) }
+        var fname = entry[0], args = entry.slice(1);
+        try { window[fname].apply(this, args); }
+        catch (TypeError) { console.log("Misunderstood:", fname); }
 
-    }
-
-    (data.moves || []).forEach(function(entry) { move.apply(this, entry) } );
+    });
 
 }
 
@@ -42,6 +41,21 @@ move = function(id, x, y, z, classes, label) {
     el.style.zIndex = z;
 
     transfer(el);
+
+}
+
+info = function(playerN, totalN, keycode) {
+
+    infoBar.innerHTML = "You are Player "+playerN+" ("+totalN+" online)";
+    myArea = "z"+playerN;
+    if (keycode) { window.sessionStorage.setItem("keycode", keycode) }
+
+}
+
+message = function(message) {
+
+    log.innerHTML += message + "<br>";
+    log.scrollTop += 1000;
 
 }
 
