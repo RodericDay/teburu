@@ -1,4 +1,5 @@
 selection = null;
+myArea = null;
 
 window.onmousedown = select = function(ev) {
 

@@ -1,4 +1,4 @@
-import os, json, argparse, random
+import os, json, argparse, random, string, collections
 import asyncio
 from aiohttp.web import Application, Response, MsgType, WebSocketResponse
 
@@ -6,11 +6,22 @@ DIR = os.path.dirname(__file__)
 WS_FILE = os.path.join(DIR, 'client.html')
 SPEC_FILE = os.path.join(DIR, 'static', 'games', 'hanabi.json')
 
+USERMAP = collections.OrderedDict()
 
 def restart_game():
     with open(SPEC_FILE) as fp:
         global GAME
         GAME = json.load(fp)
+        USERMAP.clear()
+
+def update_id_info(sockets):
+    n = len(sockets)
+    for i, (k, ws) in enumerate(USERMAP.items(), 1):
+        info = [i, n, k]
+        try:
+            ws.send_str(json.dumps({"info":info}))
+        except RuntimeError:
+            pass
 
 
 @asyncio.coroutine
@@ -25,13 +36,19 @@ def wshandler(request):
     sockets = request.app['sockets']
     if len(sockets) == 0: restart_game()
     sockets.append(resp)
-
     resp.start(request)
 
-    for i, ws in enumerate(sockets, 1):
-        n = len(sockets)
-        ws.send_str(json.dumps({"info": [i, n]}))
+    # login
+    msg = yield from resp.receive()
+    keycode = msg.data
+    existing = USERMAP.get(keycode)
+    if not existing or not existing.closed:
+        random.seed(random.SystemRandom())
+        keycode = ''.join(random.sample(string.ascii_letters, 32))
+    USERMAP[keycode] = resp
 
+    # communicate
+    update_id_info(sockets)
     resp.send_str(json.dumps(GAME))
 
     while True:
@@ -48,11 +65,7 @@ def wshandler(request):
             break
 
     sockets.remove(resp)
-
-    for i, ws in enumerate(sockets):
-        n = len(sockets)
-        ws.send_str(json.dumps({"info": [i, n]}))
-
+    update_id_info(sockets)
     return resp
 
 

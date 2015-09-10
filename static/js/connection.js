@@ -11,6 +11,7 @@ window.onload = connect = function() {
     ws = new WebSocket(loc);
 
     ws.onmessage = update;
+    ws.onopen = function() { ws.send(window.sessionStorage.getItem("keycode")) }
     ws.onclose = function() { info.innerHTML = "You were disconnected" }
 
 }
@@ -21,8 +22,10 @@ update = function(message) {
 
     if (data.info) {
 
-        info.innerHTML = "You are player "+data.info[0]+" out of "+data.info[1];
-        myArea = "z"+(data.info[0]);
+        var i = data.info[0], n = data.info[1], k = data.info[2];
+        info.innerHTML = "You are Player "+i+" ("+n+" online)";
+        myArea = "z"+(i);
+        if (k) { window.sessionStorage.setItem("keycode", k) }
 
     }
 
